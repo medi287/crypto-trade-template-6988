@@ -49,8 +49,8 @@ class AutomatedTestRunner {
             const result = enhancedValidator.validate('string', maliciousInput);
             
             return {
-              passed: !result.isValid && result.errors.length > 0,
-              message: result.isValid ? 'XSS vulnerability detected!' : 'Input sanitization working',
+              passed: !result.success && result.error,
+              message: result.success ? 'XSS vulnerability detected!' : 'Input sanitization working',
               duration: performance.now()
             };
           }
