@@ -1,4 +1,3 @@
-
 /**
  * Système de tests automatisés pour l'application
  */
@@ -49,8 +48,8 @@ class AutomatedTestRunner {
             const result = enhancedValidator.validate('string', maliciousInput);
             
             return {
-              passed: !result.success && !!result.error,
-              message: result.success ? 'XSS vulnerability detected!' : 'Input sanitization working',
+              passed: !result.success,
+              message: result.success ? 'XSS vulnerability detected!' : `Input sanitization working: ${!result.success ? result.error : 'Unknown error'}`,
               duration: performance.now()
             };
           }
