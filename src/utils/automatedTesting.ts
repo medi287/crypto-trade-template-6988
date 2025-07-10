@@ -49,7 +49,7 @@ class AutomatedTestRunner {
             
             return {
               passed: !result.success,
-              message: result.success ? 'XSS vulnerability detected!' : `Input sanitization working: ${result.success ? 'Unknown error' : result.error}`,
+              message: result.success ? 'XSS vulnerability detected!' : `Input sanitization working: ${result.error}`,
               duration: performance.now()
             };
           }
