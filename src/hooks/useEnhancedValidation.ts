@@ -1,6 +1,6 @@
 
 import { useState, useCallback } from 'react';
-import { secureValidation } from '@/utils/optimizedSecurity';
+import { secureValidation, enhancedValidator } from '@/utils/enhancedSecurity';
 
 export function useEnhancedValidation() {
   const [validationResults, setValidationResults] = useState<Record<string, any>>({});

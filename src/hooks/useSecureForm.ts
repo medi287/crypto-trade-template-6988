@@ -1,6 +1,6 @@
 
 import { useState, useCallback } from 'react';
-import { secureValidation, secureSanitizer } from '@/utils/optimizedSecurity';
+import { enhancedValidation, secureSanitizer } from '@/utils/enhancedSecurity';
 
 interface ValidationRule {
   type: 'email' | 'phone' | 'password' | 'custom';
@@ -41,11 +41,11 @@ export function useSecureForm<T extends Record<string, any>>(
 
     switch (rule.type) {
       case 'email':
-        return secureValidation.email(value) ? undefined : rule.message;
+        return enhancedValidation.email(value) ? undefined : rule.message;
       case 'phone':
-        return secureValidation.phone(value) ? undefined : rule.message;
+        return enhancedValidation.phone(value) ? undefined : rule.message;
       case 'password':
-        const passwordResult = secureValidation.strongPassword(value);
+        const passwordResult = enhancedValidation.strongPassword(value);
         return passwordResult.valid ? undefined : passwordResult.feedback.join(', ');
       case 'custom':
         return rule.validator?.(value) ? undefined : rule.message;
