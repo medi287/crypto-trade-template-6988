@@ -32,6 +32,23 @@ export const securityMonitor = {
 
 // Validateur renforcé pour la compatibilité
 export const enhancedValidator = {
+  validate: (type: string, value: any) => {
+    switch (type) {
+      case 'string':
+        return secureValidation.validate(secureValidation.schemas.searchInput, value);
+      case 'email':
+        return secureValidation.validate(secureValidation.schemas.email, value);
+      case 'url':
+        return secureValidation.validate(secureValidation.schemas.url, value);
+      case 'fileName':
+        return secureValidation.validate(secureValidation.schemas.fileName, value);
+      case 'id':
+        return secureValidation.validate(secureValidation.schemas.id, value);
+      default:
+        return secureValidation.validate(secureValidation.schemas.searchInput, value);
+    }
+  },
+  
   validateObject: (schema: Record<string, string>, data: Record<string, any>, context?: string) => {
     const results: Record<string, any> = {};
     let isValid = true;
