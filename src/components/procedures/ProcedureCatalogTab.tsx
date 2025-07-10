@@ -1,10 +1,11 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, FileText, Users, Building, Clock, Star, Filter, SortAsc, Eye, Scale, BookOpen, Heart, Upload, Quote } from 'lucide-react';
+import { Plus, FileText, Users, Building, Clock, Star, Filter, SortAsc, Eye, Scale, BookOpen, Heart, Upload, Quote, Search } from 'lucide-react';
 import { TabSearchField } from '@/components/common/TabSearchField';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface ProcedureCatalogTabProps {
   onAddProcedure?: () => void;
@@ -13,19 +14,28 @@ interface ProcedureCatalogTabProps {
 
 export function ProcedureCatalogTab({ onAddProcedure, onOpenApprovalQueue }: ProcedureCatalogTabProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState<'status' | 'digitization'>('status');
+  const [activeTab, setActiveTab] = useState<'type' | 'status' | 'digitization'>('type');
+  const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [selectedDigitization, setSelectedDigitization] = useState<string | null>(null);
+  const [quickSearchQuery, setQuickSearchQuery] = useState('');
 
   const handleTabSearch = (query: string) => {
     setSearchTerm(query);
     console.log('Procedure tab search:', query);
   };
 
-  const handleFilterChange = (filters: { status?: string; digitization?: string }) => {
+  const handleFilterChange = (filters: { type?: string; status?: string; digitization?: string }) => {
+    if (filters.type !== undefined) setSelectedType(filters.type);
     if (filters.status !== undefined) setSelectedStatus(filters.status);
     if (filters.digitization !== undefined) setSelectedDigitization(filters.digitization);
     console.log('Filters changed:', filters);
+  };
+
+  const handleTypeSelect = (typeId: string) => {
+    const type = typeId === 'all' ? null : typeId;
+    setSelectedType(type);
+    handleFilterChange({ type });
   };
 
   const handleStatusSelect = (statusId: string) => {
@@ -39,6 +49,14 @@ export function ProcedureCatalogTab({ onAddProcedure, onOpenApprovalQueue }: Pro
     setSelectedDigitization(digitization);
     handleFilterChange({ digitization });
   };
+
+  const types = [
+    { id: 'all', label: 'Tous', color: 'bg-gray-600' },
+    { id: 'civil', label: 'État Civil', color: 'bg-emerald-600' },
+    { id: 'commercial', label: 'Commercial', color: 'bg-blue-600' },
+    { id: 'urbanisme', label: 'Urbanisme', color: 'bg-purple-600' },
+    { id: 'fiscalite', label: 'Fiscalité', color: 'bg-orange-600' }
+  ];
 
   const statuses = [
     { id: 'all', label: 'Tous', color: 'bg-teal-600' },
@@ -60,6 +78,7 @@ export function ProcedureCatalogTab({ onAddProcedure, onOpenApprovalQueue }: Pro
       title: "Création d'entreprise SARL",
       description: "Procédure complète pour créer une société à responsabilité limitée",
       category: "Entreprise",
+      type: "commercial",
       duration: "15-30 jours",
       complexity: "Moyenne",
       popularity: 95,
@@ -71,6 +90,7 @@ export function ProcedureCatalogTab({ onAddProcedure, onOpenApprovalQueue }: Pro
       title: "Permis de construire",
       description: "Demande d'autorisation de construction pour bâtiment résidentiel",
       category: "Urbanisme",
+      type: "urbanisme",
       duration: "2-3 mois",
       complexity: "Élevée",
       popularity: 87,
@@ -82,6 +102,7 @@ export function ProcedureCatalogTab({ onAddProcedure, onOpenApprovalQueue }: Pro
       title: "Carte nationale d'identité",
       description: "Renouvellement ou première demande de CNI",
       category: "État Civil",
+      type: "civil",
       duration: "7-14 jours",
       complexity: "Faible",
       popularity: 92,
@@ -93,6 +114,7 @@ export function ProcedureCatalogTab({ onAddProcedure, onOpenApprovalQueue }: Pro
       title: "Passeport biométrique",
       description: "Demande de passeport biométrique pour voyages internationaux",
       category: "État Civil",
+      type: "civil",
       duration: "10-21 jours",
       complexity: "Moyenne",
       popularity: 89,
@@ -104,6 +126,7 @@ export function ProcedureCatalogTab({ onAddProcedure, onOpenApprovalQueue }: Pro
       title: "Licence d'importation",
       description: "Obtention d'une licence pour l'importation de marchandises",
       category: "Commerce",
+      type: "commercial",
       duration: "30-45 jours",
       complexity: "Élevée",
       popularity: 76,
@@ -115,6 +138,7 @@ export function ProcedureCatalogTab({ onAddProcedure, onOpenApprovalQueue }: Pro
       title: "Certificat de résidence",
       description: "Demande de certificat de résidence pour usage administratif",
       category: "État Civil",
+      type: "civil",
       duration: "3-7 jours",
       complexity: "Faible",
       popularity: 85,
@@ -126,6 +150,7 @@ export function ProcedureCatalogTab({ onAddProcedure, onOpenApprovalQueue }: Pro
       title: "Agrément sanitaire",
       description: "Obtention d'agrément pour activités liées à l'alimentation",
       category: "Santé",
+      type: "commercial",
       duration: "45-60 jours",
       complexity: "Élevée",
       popularity: 73,
@@ -137,6 +162,7 @@ export function ProcedureCatalogTab({ onAddProcedure, onOpenApprovalQueue }: Pro
       title: "Déclaration fiscale entreprise",
       description: "Procédure de déclaration fiscale annuelle pour entreprises",
       category: "Fiscalité",
+      type: "fiscalite",
       duration: "5-15 jours",
       complexity: "Moyenne",
       popularity: 91,
@@ -318,10 +344,16 @@ export function ProcedureCatalogTab({ onAddProcedure, onOpenApprovalQueue }: Pro
                          procedure.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          procedure.category.toLowerCase().includes(searchTerm.toLowerCase());
     
+    const matchesQuickSearch = !quickSearchQuery || 
+                              procedure.title.toLowerCase().includes(quickSearchQuery.toLowerCase()) ||
+                              procedure.description.toLowerCase().includes(quickSearchQuery.toLowerCase()) ||
+                              procedure.category.toLowerCase().includes(quickSearchQuery.toLowerCase());
+    
+    const matchesType = !selectedType || procedure.type === selectedType;
     const matchesStatus = !selectedStatus || procedure.status === selectedStatus;
     const matchesDigitization = !selectedDigitization || procedure.digitization === selectedDigitization;
     
-    return matchesSearch && matchesStatus && matchesDigitization;
+    return matchesSearch && matchesQuickSearch && matchesType && matchesStatus && matchesDigitization;
   });
 
   const getColorClasses = (color: string) => {
@@ -344,13 +376,13 @@ export function ProcedureCatalogTab({ onAddProcedure, onOpenApprovalQueue }: Pro
     ));
   };
 
-  const getTabButtonClass = (tab: 'status' | 'digitization') => {
+  const getTabButtonClass = (tab: 'type' | 'status' | 'digitization') => {
     const isActive = activeTab === tab;
-    return `px-6 py-2 font-medium transition-colors ${
+    return `px-4 py-2 font-medium transition-colors ${
       isActive 
         ? 'bg-emerald-600 text-white' 
         : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-    } ${tab === 'status' ? 'rounded-l-lg' : 'rounded-r-lg'}`;
+    } ${tab === 'type' ? 'rounded-l-lg' : tab === 'digitization' ? 'rounded-r-lg' : ''}`;
   };
 
   return (
@@ -409,7 +441,18 @@ export function ProcedureCatalogTab({ onAddProcedure, onOpenApprovalQueue }: Pro
           {filteredProcedures.length} procédure(s) trouvée(s)
         </div>
         
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2 flex-wrap items-center">
+          {/* Nouveau champ de recherche rapide */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              placeholder="Recherche rapide..."
+              value={quickSearchQuery}
+              onChange={(e) => setQuickSearchQuery(e.target.value)}
+              className="pl-10 w-48"
+            />
+          </div>
+          
           <Button variant="outline" size="sm">
             <Filter className="w-4 h-4 mr-2" />
             Filtrer
@@ -437,12 +480,18 @@ export function ProcedureCatalogTab({ onAddProcedure, onOpenApprovalQueue }: Pro
         </div>
       </div>
 
-      {/* Filtre avec onglets Statut et Numérisation */}
+      {/* Filtre avec onglets Type, Statut et Numérisation */}
       <Card className="mb-6">
         <CardContent className="pt-4">
           <div className="flex flex-col gap-4">
             {/* Tabs */}
             <div className="flex">
+              <button
+                onClick={() => setActiveTab('type')}
+                className={getTabButtonClass('type')}
+              >
+                Type
+              </button>
               <button
                 onClick={() => setActiveTab('status')}
                 className={getTabButtonClass('status')}
@@ -459,6 +508,21 @@ export function ProcedureCatalogTab({ onAddProcedure, onOpenApprovalQueue }: Pro
 
             {/* Filter Options */}
             <div className="flex flex-wrap gap-2">
+              {activeTab === 'type' && types.map((type) => (
+                <Badge
+                  key={type.id}
+                  variant={selectedType === type.id ? "default" : "outline"}
+                  className={`cursor-pointer px-4 py-2 text-sm ${
+                    selectedType === type.id || (selectedType === null && type.id === 'all')
+                      ? `${type.color} text-white hover:opacity-80`
+                      : 'hover:bg-gray-100'
+                  }`}
+                  onClick={() => handleTypeSelect(type.id)}
+                >
+                  {type.label}
+                </Badge>
+              ))}
+              
               {activeTab === 'status' && statuses.map((status) => (
                 <Badge
                   key={status.id}
@@ -541,156 +605,155 @@ export function ProcedureCatalogTab({ onAddProcedure, onOpenApprovalQueue }: Pro
         ))}
       </div>
 
-      {/* Institutions */}
-      <div className="space-y-4">
-        <h3 className="text-xl font-semibold text-gray-900">Institutions</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {institutions.map((institution) => {
-            const IconComponent = institution.icon;
-            return (
-              <Card key={institution.id} className="hover:shadow-md transition-shadow">
+      {/* Onglets horizontaux pour les éléments */}
+      <Tabs defaultValue="institutions" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="institutions">Institutions</TabsTrigger>
+          <TabsTrigger value="types">Types de procédures</TabsTrigger>
+          <TabsTrigger value="featured">Procédures en vedette</TabsTrigger>
+          <TabsTrigger value="testimonials">Témoignages récents</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="institutions" className="mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {institutions.map((institution) => {
+              const IconComponent = institution.icon;
+              return (
+                <Card key={institution.id} className="hover:shadow-md transition-shadow">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-emerald-100 rounded-lg">
+                        <IconComponent className="w-5 h-5 text-emerald-600" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-lg">{institution.name}</CardTitle>
+                        <p className="text-sm text-gray-600">{institution.type}</p>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-gray-600 mb-3">{institution.description}</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-emerald-600">
+                        {institution.proceduresCount} procédures
+                      </span>
+                      <Button variant="outline" size="sm">
+                        Voir les procédures
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="types" className="mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {procedureTypes.map((type) => {
+              const IconComponent = type.icon;
+              const colorClasses = getColorClasses(type.color);
+              return (
+                <Card key={type.id} className="hover:shadow-md transition-shadow">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-lg ${colorClasses.bg}`}>
+                        <IconComponent className={`w-5 h-5 ${colorClasses.text}`} />
+                      </div>
+                      <div>
+                        <CardTitle className="text-lg">{type.name}</CardTitle>
+                        <p className="text-sm text-gray-600">{type.count} procédures</p>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-gray-600 mb-3">{type.description}</p>
+                    <Button variant="outline" size="sm" className="w-full">
+                      Parcourir
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="featured" className="mt-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {featuredProcedures.map((procedure) => (
+              <Card key={procedure.id} className="hover:shadow-md transition-shadow">
                 <CardHeader className="pb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-emerald-100 rounded-lg">
-                      <IconComponent className="w-5 h-5 text-emerald-600" />
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Badge variant="outline">{procedure.type}</Badge>
+                        <Badge className="bg-emerald-100 text-emerald-800">{procedure.category}</Badge>
+                      </div>
+                      <CardTitle className="text-lg line-clamp-2">{procedure.title}</CardTitle>
                     </div>
-                    <div>
-                      <CardTitle className="text-lg">{institution.name}</CardTitle>
-                      <p className="text-sm text-gray-600">{institution.type}</p>
-                    </div>
+                    <Star className="w-5 h-5 text-yellow-500 fill-current" />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-gray-600 mb-3">{institution.description}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-emerald-600">
-                      {institution.proceduresCount} procédures
-                    </span>
-                    <Button variant="outline" size="sm">
-                      Voir les procédures
-                    </Button>
+                  <div className="space-y-3">
+                    <p className="text-sm text-gray-600">Publié le {procedure.publishDate}</p>
+                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                      <div className="flex items-center gap-1">
+                        <Eye className="w-4 h-4" />
+                        {procedure.views}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <FileText className="w-4 h-4" />
+                        {procedure.downloads}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" className="flex-1">
+                        <Eye className="w-4 h-4 mr-1" />
+                        Consulter
+                      </Button>
+                      <Button size="sm" className="flex-1 bg-emerald-600 hover:bg-emerald-700">
+                        <FileText className="w-4 h-4 mr-1" />
+                        Démarrer
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
-            );
-          })}
-        </div>
-      </div>
+            ))}
+          </div>
+        </TabsContent>
 
-      {/* Types de procédures */}
-      <div className="space-y-4">
-        <h3 className="text-xl font-semibold text-gray-900">Types de procédures administratives</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {procedureTypes.map((type) => {
-            const IconComponent = type.icon;
-            const colorClasses = getColorClasses(type.color);
-            return (
-              <Card key={type.id} className="hover:shadow-md transition-shadow">
+        <TabsContent value="testimonials" className="mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {testimonials.map((testimonial) => (
+              <Card key={testimonial.id} className="hover:shadow-md transition-shadow">
                 <CardHeader className="pb-3">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${colorClasses.bg}`}>
-                      <IconComponent className={`w-5 h-5 ${colorClasses.text}`} />
-                    </div>
+                  <div className="flex items-start justify-between">
                     <div>
-                      <CardTitle className="text-lg">{type.name}</CardTitle>
-                      <p className="text-sm text-gray-600">{type.count} procédures</p>
+                      <CardTitle className="text-lg">{testimonial.name}</CardTitle>
+                      <p className="text-sm text-gray-600">{testimonial.role}</p>
+                      <Badge variant="outline" className="mt-1">
+                        {testimonial.speciality}
+                      </Badge>
                     </div>
+                    <Quote className="w-6 h-6 text-emerald-600" />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-gray-600 mb-3">{type.description}</p>
-                  <Button variant="outline" size="sm" className="w-full">
-                    Parcourir
-                  </Button>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-1">
+                      {renderStars(testimonial.rating)}
+                    </div>
+                    <p className="text-sm text-gray-700 italic">"{testimonial.comment}"</p>
+                    <p className="text-xs text-gray-500">{testimonial.date}</p>
+                  </div>
                 </CardContent>
               </Card>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Procédures en vedette */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Star className="w-6 h-6 text-yellow-500" />
-          <h3 className="text-xl font-semibold text-gray-900">Procédures administratives en vedette</h3>
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {featuredProcedures.map((procedure) => (
-            <Card key={procedure.id} className="hover:shadow-md transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Badge variant="outline">{procedure.type}</Badge>
-                      <Badge className="bg-emerald-100 text-emerald-800">{procedure.category}</Badge>
-                    </div>
-                    <CardTitle className="text-lg line-clamp-2">{procedure.title}</CardTitle>
-                  </div>
-                  <Star className="w-5 h-5 text-yellow-500 fill-current" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <p className="text-sm text-gray-600">Publié le {procedure.publishDate}</p>
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
-                    <div className="flex items-center gap-1">
-                      <Eye className="w-4 h-4" />
-                      {procedure.views}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <FileText className="w-4 h-4" />
-                      {procedure.downloads}
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="flex-1">
-                      <Eye className="w-4 h-4 mr-1" />
-                      Consulter
-                    </Button>
-                    <Button size="sm" className="flex-1 bg-emerald-600 hover:bg-emerald-700">
-                      <FileText className="w-4 h-4 mr-1" />
-                      Démarrer
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-
-      {/* Témoignages récents */}
-      <div className="space-y-4">
-        <h3 className="text-xl font-semibold text-gray-900">Témoignages récents</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {testimonials.map((testimonial) => (
-            <Card key={testimonial.id} className="hover:shadow-md transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle className="text-lg">{testimonial.name}</CardTitle>
-                    <p className="text-sm text-gray-600">{testimonial.role}</p>
-                    <Badge variant="outline" className="mt-1">
-                      {testimonial.speciality}
-                    </Badge>
-                  </div>
-                  <Quote className="w-6 h-6 text-emerald-600" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-1">
-                    {renderStars(testimonial.rating)}
-                  </div>
-                  <p className="text-sm text-gray-700 italic">"{testimonial.comment}"</p>
-                  <p className="text-xs text-gray-500">{testimonial.date}</p>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
+            ))}
+          </div>
+        </TabsContent>
+      </Tabs>
 
       {/* Contribuez à la base de données */}
       <div className="space-y-4">

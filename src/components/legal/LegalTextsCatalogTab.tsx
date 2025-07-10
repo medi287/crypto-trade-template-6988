@@ -12,6 +12,7 @@ import { LegalTextCard } from './LegalTextCard';
 import { LegalTextsEmptyState } from './LegalTextsEmptyState';
 import { useLegalTextsData } from './hooks/useLegalTextsData';
 import { TabSearchField } from '@/components/common/TabSearchField';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface LegalTextsCatalogTabProps {
   onAddLegalText?: () => void;
@@ -87,11 +88,32 @@ export function LegalTextsCatalogTab({ onAddLegalText, onOpenApprovalQueue }: Le
         )}
       </div>
 
-      {/* Nouvelles sections ajoutées */}
-      <LegalTextsInstitutions />
-      <LegalTextsTypes />
-      <LegalTextsFeatured />
-      <LegalTextsTestimonials />
+      {/* Onglets horizontaux pour les nouvelles sections */}
+      <Tabs defaultValue="institutions" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="institutions">Institutions</TabsTrigger>
+          <TabsTrigger value="types">Types de textes juridiques</TabsTrigger>
+          <TabsTrigger value="featured">Textes juridiques en vedette</TabsTrigger>
+          <TabsTrigger value="testimonials">Témoignages récents</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="institutions" className="mt-6">
+          <LegalTextsInstitutions />
+        </TabsContent>
+
+        <TabsContent value="types" className="mt-6">
+          <LegalTextsTypes />
+        </TabsContent>
+
+        <TabsContent value="featured" className="mt-6">
+          <LegalTextsFeatured />
+        </TabsContent>
+
+        <TabsContent value="testimonials" className="mt-6">
+          <LegalTextsTestimonials />
+        </TabsContent>
+      </Tabs>
+
       <LegalTextsContribute />
     </div>
   );
